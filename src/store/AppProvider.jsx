@@ -63,7 +63,9 @@ const withAdminAccount = (db) => {
   return { ...db, users: [normalizeUser(seedAdmin), ...db.users] }
 }
 
-const sync = createDbSync({ appName: STORAGE_KEY })const loadDb = () => {
+const sync = createDbSync({ appName: STORAGE_KEY });
+
+const loadDb = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
@@ -148,6 +150,9 @@ export function AppProvider({ children }) {
       try { syncRef.current = null } catch { /* noop */ }
     }
   }, [])
+  // Public sync handle kept on the provider so react-admin panels can drive Supabase.
+  // Public sync handle kept on the provider so react-admin panels can drive Supabase.
+  // Public sync handle kept on the provider so react-admin panels can drive Supabase.
   const sync = syncRef.current
 
   const updateUser = useCallback((userId, patch) => {

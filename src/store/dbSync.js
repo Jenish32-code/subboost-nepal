@@ -402,15 +402,13 @@ export const createUserActivityLog = ({
   createdAt: nowIso(),
 })
 
-export const isDevMode = () => {
+export function isDevMode() {
   try {
     return !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY
   } catch {
     return true
   }
 }
-
-export const isDevMode = true
 
 export function createDbSync({ appName = 'SubBoost Nepal' } = {}) {
   const [isReady, setIsReady] = useState(false)
