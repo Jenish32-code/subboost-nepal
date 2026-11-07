@@ -13,9 +13,10 @@ export class ErrorBoundary extends Component {
     console.error('SubBoost crashed:', error, info)
   }
 
-  resetDemo = () => {
+  resetLocalData = () => {
     try {
       localStorage.removeItem('subboost-nepal-v1')
+      localStorage.removeItem('subboost-nepal-v2')
     } catch {
       /* storage unavailable */
     }
@@ -36,7 +37,7 @@ export class ErrorBoundary extends Component {
           </span>
           <h1 className="mt-4 text-xl font-extrabold tracking-tight text-white">Something went wrong</h1>
           <p className="mt-2 text-[13px] leading-relaxed text-slate-400">
-            The app hit an unexpected error. Reloading usually fixes it; if it keeps happening, reset the local demo data.
+            The app hit an unexpected error. Reloading usually fixes it; if it keeps happening, reset the locally cached data.
           </p>
           <pre className="mt-4 max-h-24 overflow-auto rounded-xl border border-white/[0.07] bg-black/30 p-3 text-left text-[10.5px] leading-relaxed text-rose-200/70">
             {String(this.state.error?.message || this.state.error)}
@@ -51,10 +52,10 @@ export class ErrorBoundary extends Component {
             </button>
             <button
               type="button"
-              onClick={this.resetDemo}
+              onClick={this.resetLocalData}
               className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] text-sm font-semibold text-slate-200 transition hover:bg-white/[0.1]"
             >
-              <Trash2 className="h-4 w-4" /> Reset demo data
+              <Trash2 className="h-4 w-4" /> Reset local data
             </button>
           </div>
         </div>

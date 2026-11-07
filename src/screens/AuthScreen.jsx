@@ -74,19 +74,17 @@ export function AuthScreen() {
     }, 480)
   }
 
-  const handleGoogle = () => {
+  const handleGoogle = async () => {
     setGoogleBusy(true)
-    window.setTimeout(() => {
-      signInWithGoogle()
-      setGoogleBusy(false)
-      toast({ type: 'success', title: 'Signed in with Google', message: 'Simulated Google sign-in — welcome to the demo.' })
-    }, 900)
-  }
-
-  const fillDemo = () => {
-    setMode('login')
-    setForm({ name: '', email: 'jenish@subboost.np', phone: '', password: 'demo1234' })
     setError('')
+    const result = await signInWithGoogle()
+    if (!result.ok) {
+      setError(result.error)
+      setGoogleBusy(false)
+      return
+    }
+    // A redirect follows when Supabase returns an OAuth URL.
+    window.setTimeout(() => setGoogleBusy(false), 1200)
   }
 
   return (
@@ -233,9 +231,6 @@ export function AuthScreen() {
               >
                 {googleBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon className="h-4 w-4" />}
                 Continue with Google
-                <span className="rounded-md border border-white/10 bg-white/[0.05] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
-                  Demo
-                </span>
               </button>
 
               <div className="my-5 flex items-center gap-3">
@@ -326,27 +321,15 @@ export function AuthScreen() {
                 </Button>
               </form>
 
-              <div className="mt-4 flex flex-col gap-2 rounded-xl border border-white/[0.07] bg-black/20 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-start gap-2">
-                  <BadgeCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />
-                  <p className="text-[11px] leading-relaxed text-slate-400">
-                    Demo account
-                    <br className="sm:hidden" />
-                    <span className="ml-1 font-mono text-[10.5px] text-slate-300">jenish@subboost.np / demo1234</span>
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={fillDemo}
-                  className="self-start rounded-lg border border-white/10 bg-white/[0.05] px-2.5 py-1.5 text-[11px] font-bold text-slate-200 transition hover:bg-white/[0.1] sm:self-auto"
-                >
-                  Use demo
-                </button>
+              <div className="mt-4 flex items-start gap-2 rounded-xl border border-white/[0.07] bg-black/20 px-3 py-2.5">
+                <BadgeCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                <p className="text-[11px] leading-relaxed text-slate-400">
+                  New here? Create an account to start subscribing, earning coins and posting your own channel.
+                </p>
               </div>
 
               <p className="mt-4 text-center text-[10.5px] leading-relaxed text-slate-600">
-                By continuing you agree to the SubBoost Nepal terms. This is a product prototype — accounts, payments and
-                coins are simulated on this device ({RATES.coinToNpr} coin = NPR {RATES.coinToNpr}).
+                By continuing you agree to the SubBoost Nepal terms. 1 coin = NPR {RATES.coinToNpr}.
               </p>
               <div className="mt-3 flex justify-center">
                 <Link

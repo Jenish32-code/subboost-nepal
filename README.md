@@ -13,27 +13,26 @@ npm run build    # production bundle in dist/
 npm run preview  # serve the production build
 ```
 
-No backend or environment variables are required.
+Create an account on the sign-in card, or sign in with Google. There are no pre-loaded accounts, campaigns, deposits or withdrawals: the app starts with an empty ledger. New accounts are prompted to set a 4-digit Security PIN before entering the app.
 
-## Demo account
+## Environment
 
-| Field | Value |
-| --- | --- |
-| Email | `jenish@subboost.np` |
-| Password | `demo1234` |
-| Security PIN | `1234` |
+`.env` holds the Supabase project credentials plus the bootstrap admin account:
 
-Use the **Use demo** button on the sign-in card to fill the credentials. You can also click **Continue with Google** for a simulated Google sign-in, or create a brand-new account — new accounts are prompted to set a 4-digit Security PIN before entering the app.
+```
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+VITE_ADMIN_EMAIL=...
+VITE_ADMIN_PASSWORD=...
+```
+
+The admin console account is created from `VITE_ADMIN_EMAIL` / `VITE_ADMIN_PASSWORD` on startup, so change those values (and restart the dev server) to rotate it.
 
 ## Admin console
 
 Open **`/admin`** (also linked from the sign-in screen). Admin mode uses its own indigo/slate theme and a separate session, so signing into the console does not replace the customer session in the main app.
 
-| Field | Value |
-| --- | --- |
-| URL | `/admin` |
-| Email | `admin@subboost.np` |
-| Password | `admin123` |
+The sign-in details are the `VITE_ADMIN_EMAIL` / `VITE_ADMIN_PASSWORD` values from `.env`. There is no built-in admin password in the source.
 
 | Route | Module |
 | --- | --- |
@@ -47,7 +46,7 @@ Standard user accounts and signed-out visitors are redirected to `/`. Suspending
 
 ## What's included
 
-- **Landing / auth gate** — email & password login and signup, mock Google sign-in, first-run Security PIN setup.
+- **Landing / auth gate** — email & password login and signup, Supabase Google OAuth, first-run Security PIN setup.
 - **Home task wall** — live campaign cards with remaining subscriber counts, a 15-second verification timer that opens the channel on YouTube in a new tab, instant +1 coin credit, skip/remove, and a channel never reappearing once subscribed.
 - **Post Campaign** — live balance and lifetime-earned stats, target → cost calculator (`target × 4`), YouTube URL validation with channel detection, PIN-gated publishing, and a scrollable feed of recent campaigns with progress bars.
 - **Subscribed** — permanent log of completed subscriptions with dates, coins earned and channel links.
@@ -72,7 +71,7 @@ src/
   App.jsx                 router, route guards, tab screens + first-run PIN gate
   main.jsx                BrowserRouter + providers + error boundary
   store/AppProvider.jsx   state, coin economy, auth, admin actions, toasts, persistence
-  lib/                    constants, seed data, helpers
+  lib/                    constants, helpers
   components/             layout, UI primitives, PIN modal, toasts, brand marks
   screens/                Auth, Home, Post, Subscribed, History, Wallet (deposit/withdraw), Profile
   admin/                  admin shell, login gate, dashboard and the four queue modules, shared UI
@@ -80,4 +79,4 @@ src/
 
 ## Data & limitations
 
-This is a front-end prototype. Accounts, passwords, PINs, coin balances, campaigns, deposits, withdrawals and notifications are stored in `localStorage` under `subboost-nepal-v1` and are scoped to the browser. Deposit approval and withdrawal settlement are simulated through the admin console: new transactions stay **Pending** until reviewed there. Clearing site data resets the demo to the seeded admin, creators, queues and ledger entries.
+Accounts, PINs, coin balances, campaigns, deposits, withdrawals and notifications are stored in `localStorage` under `subboost-nepal-v2` and are scoped to the browser; Supabase holds the server-side copy of the ledger. Nothing is pre-seeded — the app starts empty and only shows data you create. New deposits and withdrawals stay **Pending** until an admin reviews them in the console. Clearing site data returns the app to an empty ledger (the bootstrap admin from `.env` is recreated on load).

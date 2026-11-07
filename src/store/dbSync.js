@@ -481,25 +481,21 @@ export function createDbSync({ appName = 'SubBoost Nepal' } = {}) {
         return nextUsers
       }
 
-      // No database yet: seed the local budget from the app demo data so the UI is
-      // still populated while the owner provisions the tables.
-      seedBudgetFromLocal()
+      // No profiles yet: keep the budget empty rather than seeding demo data.
       setDb((prev) => ({
         ...prev,
-        users,
+        users: [],
         updatedAt: nowIso(),
       }))
-      await syncLocalToSupabase()
-      return users
+      return []
     } catch (err) {
       setError(err)
-      seedBudgetFromLocal()
       setDb((prev) => ({
         ...prev,
-        users,
+        users: [],
         updatedAt: nowIso(),
       }))
-      return users
+      return []
     } finally {
       setLoading(false)
       setIsReady(true)
@@ -2355,14 +2351,6 @@ export function createDbSync({ appName = 'SubBoost Nepal' } = {}) {
       try { cleanup() } catch { /* ignore */ }
     }
   }, [])
-
-  // One-time sync of the local budget to Supabase so the owner's tables start
-  // with the seed data the product owner has already verified.
-  useEffect(() => {
-    if (isReady && !isDevMode() && db.users.length === 0) {
-      syncLocalToSupabase().catch(() => {})
-    }
-  }, [isReady])
 
   return value
 }

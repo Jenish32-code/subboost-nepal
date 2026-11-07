@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowLeft, Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck } from 'lucide-react'
 import { AdminMark } from './ui'
 import { Button } from '../components/ui'
 import { useApp } from '../store/appContext'
@@ -32,12 +32,6 @@ export function AdminLogin() {
       })
       navigate('/admin/dashboard', { replace: true })
     }, 500)
-  }
-
-  const fillDemo = () => {
-    setEmail('admin@subboost.np')
-    setPassword('admin123')
-    setError('')
   }
 
   return (
@@ -133,25 +127,6 @@ export function AdminLogin() {
               {busy ? 'Verifying role…' : 'Enter admin console'}
               {!busy && <ShieldCheck className="h-4 w-4" />}
             </Button>
-
-            <div className="flex items-start gap-2 rounded-xl border border-white/[0.07] bg-black/25 px-3 py-2.5">
-              <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-300" />
-              <div className="min-w-0 flex-1">
-                <p className="text-[10.5px] leading-relaxed text-slate-400">
-                  Demo admin
-                  <span className="ml-1 font-mono text-[10px] text-slate-200">
-                    admin@subboost.np / admin123
-                  </span>
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={fillDemo}
-                className="shrink-0 rounded-lg border border-white/10 bg-white/[0.05] px-2 py-1 text-[10px] font-bold text-slate-200 transition hover:bg-white/[0.1]"
-              >
-                Use demo
-              </button>
-            </div>
 
             <p className="flex items-center justify-center gap-1.5 text-center text-[10px] text-slate-600">
               <Loader2 className="hidden" />

@@ -86,7 +86,7 @@ export function ProfileTab({ onNavigate, onLogout }) {
     toast({
       type: 'info',
       title: 'OTP sent',
-      message: `Demo OTP ${code} was sent to ${user.email}.`,
+      message: `Verification code ${code} for ${user.email}.`,
     })
   }
 
@@ -352,11 +352,10 @@ export function ProfileTab({ onNavigate, onLogout }) {
 
           <section className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
             <p className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
-              <Smartphone className="h-3.5 w-3.5" /> Demo account
+              <Smartphone className="h-3.5 w-3.5" /> This device
             </p>
             <p className="mt-1 text-[10.5px] leading-relaxed text-slate-600">
-              This build stores your profile, PIN and coin ledger in your browser. Payments to Khalti and eSewa are
-              simulated for demonstration.
+              Your session stays signed in on this browser only. Sign out before handing the device to someone else.
             </p>
             <button
               type="button"
@@ -499,13 +498,13 @@ export function ProfileTab({ onNavigate, onLogout }) {
               <Send className="h-4 w-4" /> Send OTP
             </Button>
             <p className="text-center text-[10.5px] text-slate-600">
-              Demo mode: the OTP is shown on the next screen instead of being emailed.
+              Email delivery is not connected yet, so the code is shown on the next screen.
             </p>
           </div>
         ) : (
           <div className="space-y-4">
             <div className="rounded-xl border border-amber-400/25 bg-amber-400/[0.07] px-4 py-3 text-center">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-200/70">Demo OTP</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-200/70">Verification code</p>
               <p className="mt-0.5 font-mono text-2xl font-bold tracking-[0.3em] text-amber-100">{otp}</p>
               <p className="mt-0.5 text-[10px] text-amber-200/50">Sent to {user.email}</p>
             </div>

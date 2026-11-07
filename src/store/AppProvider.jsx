@@ -2,9 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AppContext } from './appContext'
 import { RATES } from '../lib/constants'
 import { channelNameFromUrl, isYoutubeUrl, normalizeUrl, receiptCode, taskCode, uid } from '../lib/utils'
-import { createDbSync, seedBudgetFromLocal, isDevMode } from './dbSync'
+import { supabase } from '../supabaseClient'
 
-const STORAGE_KEY = 'subboost-nepal-v1'
+const STORAGE_KEY = 'subboost-nepal-v2'
+
+const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL || '').trim().toLowerCase()
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || ''
 
 const nowIso = () => new Date().toISOString()
 
@@ -58,12 +61,31 @@ const normalizeDb = (raw = {}) => ({
   adminSessionUserId: raw.adminSessionUserId || null,
 })
 
-const withAdminAccount = (db) => {
-  if (db.users.some((item) => item.role === 'admin')) return db
-  return { ...db, users: [normalizeUser(seedAdmin), ...db.users] }
+const bootstrapAdmin = () => {
+  if (!ADMIN_EMAIL || !ADMIN_PASSWORD) return null
+  return normalizeUser({
+    id: 'u_admin',
+    name: 'SubBoost Admin',
+    email: ADMIN_EMAIL,
+    phone: '',
+    password: ADMIN_PASSWORD,
+    pin: '',
+    coins: 0,
+    lifetimeEarned: 0,
+    role: 'admin',
+    status: 'active',
+  })
 }
 
-const sync = createDbSync({ appName: STORAGE_KEY });
+// The bootstrap admin always mirrors VITE_ADMIN_EMAIL / VITE_ADMIN_PASSWORD.
+const withAdminAccount = (db) => {
+  const admin = bootstrapAdmin()
+  if (!admin) return db
+  const others = db.users.filter(
+    (item) => item.id !== admin.id && item.email.toLowerCase() !== admin.email,
+  )
+  return { ...db, users: [admin, ...others] }
+}
 
 const loadDb = () => {
   try {
@@ -71,14 +93,13 @@ const loadDb = () => {
     if (raw) {
       const parsed = JSON.parse(raw)
       if (parsed && typeof parsed === 'object' && Array.isArray(parsed.users)) {
-        seedBudgetFromLocal(parsed)
         return withAdminAccount(normalizeDb(parsed))
       }
     }
   } catch {
-    /* corrupted storage — fall back to seed */
+    /* corrupted storage — start from an empty ledger */
   }
-  return createSeedDb()
+  return withAdminAccount(normalizeDb({}))
 }
 
 const emailLooksValid = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim())
@@ -142,18 +163,31 @@ export function AppProvider({ children }) {
     [db.users, db.adminSessionUserId],
   )
 
-  // Public sync handle kept on the provider so react-admin panels can drive Supabase.
-  const syncRef = useRef(null)
+  // Pick up a Supabase OAuth session (Google) that returned to the app.
   useEffect(() => {
-    syncRef.current = sync
-    return () => {
-      try { syncRef.current = null } catch { /* noop */ }
-    }
+    let active = true
+    supabase.auth.getSession().then(({ data }) => {
+      const authUser = data?.session?.user
+      if (!active || !authUser) return
+      setDb((prev) => {
+        const existing = prev.users.find((item) => item.id === authUser.id)
+        if (existing) return { ...prev, sessionUserId: existing.id }
+        const name = authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'SubBoost user'
+        const nextUser = normalizeUser({
+          id: authUser.id,
+          name,
+          email: authUser.email,
+          phone: authUser.user_metadata?.phone || '',
+          coins: 0,
+          lifetimeEarned: 0,
+          role: 'user',
+          status: 'active',
+        })
+        return { ...prev, users: [...prev.users, nextUser], sessionUserId: nextUser.id }
+      })
+    }).catch(() => {})
+    return () => { active = false }
   }, [])
-  // Public sync handle kept on the provider so react-admin panels can drive Supabase.
-  // Public sync handle kept on the provider so react-admin panels can drive Supabase.
-  // Public sync handle kept on the provider so react-admin panels can drive Supabase.
-  const sync = syncRef.current
 
   const updateUser = useCallback((userId, patch) => {
     setDb((prev) => ({
@@ -210,30 +244,22 @@ export function AppProvider({ children }) {
     [db.users],
   )
 
-  const signInWithGoogle = useCallback(() => {
-    const demo = db.users.find((item) => item.email === 'jenish@subboost.np')
-    if (demo) {
-      if (demo.status === 'suspended') return { ok: false, error: 'This account is suspended.' }
-      setDb((prev) => ({ ...prev, sessionUserId: demo.id }))
-      return { ok: true, needsPin: !demo.pin }
-    }      const googleUser = {
-        id: uid('user'),
-        name: 'Jenish Shah',
-        email: 'jenish@gmail.com',
-        phone: '+977 9841234567',
-        password: uid('g'),
-        pin: '',
-        coins: 0,
-        lifetimeEarned: 0,
-        role: 'user',
-        status: 'active',
-        createdAt: new Date().toISOString(),
-      }
-    setDb((prev) => ({ ...prev, users: [...prev.users, googleUser], sessionUserId: googleUser.id }))
-    return { ok: true, needsPin: true }
-  }, [db.users])
+  const signInWithGoogle = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin },
+      })
+      if (error) throw error
+      if (data?.url) window.location.href = data.url
+      return { ok: true, pending: true }
+    } catch (err) {
+      return { ok: false, error: err?.message || 'Google sign-in is unavailable right now.' }
+    }
+  }, [])
 
   const signOut = useCallback(() => {
+    supabase.auth.signOut().catch(() => {})
     setDb((prev) => ({ ...prev, sessionUserId: null }))
   }, [])
 
@@ -909,7 +935,6 @@ export function AppProvider({ children }) {
       resetUserPin,
       resetUserPassword,
       markNotificationsRead,
-      sync,
     ],
   )
 
